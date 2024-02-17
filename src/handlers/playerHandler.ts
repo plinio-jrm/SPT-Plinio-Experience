@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/brace-style */
 import { inject, injectable } from "tsyringe";
 import { ILogger } from "@spt-aki/models/spt/utils/ILogger";
-import { IBotBase, Health, CurrentMax, IBaseSkill, BodyPartsHealth } from "@spt-aki/models/eft/common/tables/IBotBase";
+import { IBotBase } from "@spt-aki/models/eft/common/tables/IBotBase";
 
 import { IPlayerConfig } from "../common/IConfig";
 import { ModCore } from "../core/modCore";
@@ -20,9 +20,10 @@ export class PlayerHandler extends BaseCharacterHandler {
         this.config = core.getPlayerConfig();
     }
 
-    public handle(player: IBotBase): void {
+    public handle(player: IBotBase): IBotBase {
         this.data = player;
         this.process();
+        return this.data;
     }
 
     protected process(): void {
@@ -38,7 +39,8 @@ export class PlayerHandler extends BaseCharacterHandler {
     }
 
     private processPlayer(): void {
-        this.changeHealth(this.data.Health, this.data.Info.Level, this.config);
+        this.changeHealth(this.data.Health.BodyParts, this.data.Info.Level, this.config);
         this.applyMetabolism(this.data, this.config);
+        this.applyVitalityHealth(this.data, this.config);
     }
 }

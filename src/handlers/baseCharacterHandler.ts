@@ -4,6 +4,7 @@
 import { inject, injectable } from "tsyringe";
 import { ILogger } from "@spt-aki/models/spt/utils/ILogger";
 import { IBotBase, Health, CurrentMax, IBaseSkill, BodyPartsHealth } from "@spt-aki/models/eft/common/tables/IBotBase";
+import { LogTextColor } from "@spt-aki/models/spt/logging/LogTextColor";
 
 import { IBaseCharacterConfig } from "../common/IConfig";
 import { ModCore } from "../core/modCore";
@@ -24,22 +25,12 @@ export class BaseCharacterHandler {
             this.hasError = true;
     }
 
-    protected changeHealth(health: Health, level: number, config: IBaseCharacterConfig): void {
+    //TODO: obtain the default health for each bot type to be take into account
+    protected changeHealth(bodyParts: BodyPartsHealth, level: number, config: IBaseCharacterConfig): void {
         if (level == 1)
            return;
   
-        let statToIncrease: number = level * config.StatPerLevel;
-        statToIncrease = statToIncrease / 7;
-        statToIncrease = this.core.applyDifficulty(statToIncrease);
-        statToIncrease = this.floorValue(statToIncrease);
-        
-        this.addCurrentMax(health.BodyParts.Head.Health, statToIncrease);
-        this.addCurrentMax(health.BodyParts.Chest.Health, statToIncrease);
-        this.addCurrentMax(health.BodyParts.Stomach.Health, statToIncrease);
-        this.addCurrentMax(health.BodyParts.RightArm.Health, statToIncrease);
-        this.addCurrentMax(health.BodyParts.LeftArm.Health, statToIncrease);
-        this.addCurrentMax(health.BodyParts.RightLeg.Health, statToIncrease);
-        this.addCurrentMax(health.BodyParts.LeftLeg.Health, statToIncrease);
+        this.addToHealth(bodyParts, level * config.StatPerLevel);
     }
 
     protected applyMetabolism(bot: IBotBase, config: IBaseCharacterConfig): void {
@@ -66,17 +57,21 @@ export class BaseCharacterHandler {
         if (vitalitySkill !== undefined)
            vitalityStats *= this.getSkillLevel(vitalitySkill.Progress);
   
-        let statToIncrease = (healthStats + vitalityStats) / 7;
-        statToIncrease = this.core.applyDifficulty(statToIncrease);
-        statToIncrease = this.floorValue(statToIncrease);
-  
-        this.addCurrentMax(bot.Health.BodyParts.Head.Health, statToIncrease);
-        this.addCurrentMax(bot.Health.BodyParts.Chest.Health, statToIncrease);
-        this.addCurrentMax(bot.Health.BodyParts.Stomach.Health, statToIncrease);
-        this.addCurrentMax(bot.Health.BodyParts.RightArm.Health, statToIncrease);
-        this.addCurrentMax(bot.Health.BodyParts.LeftArm.Health, statToIncrease);
-        this.addCurrentMax(bot.Health.BodyParts.RightLeg.Health, statToIncrease);
-        this.addCurrentMax(bot.Health.BodyParts.LeftLeg.Health, statToIncrease);
+        this.addToHealth(bot.Health.BodyParts, healthStats + vitalityStats);
+    }
+
+    private addToHealth(bodyParts: BodyPartsHealth, value: number): void {
+        let addHealth: number = value / 7;
+        addHealth = this.core.applyDifficulty(addHealth);
+        addHealth = this.floorValue(addHealth);
+
+        this.addCurrentMax(bodyParts.Head.Health, addHealth);
+        this.addCurrentMax(bodyParts.Chest.Health, addHealth);
+        this.addCurrentMax(bodyParts.Stomach.Health, addHealth);
+        this.addCurrentMax(bodyParts.RightArm.Health, addHealth);
+        this.addCurrentMax(bodyParts.LeftArm.Health, addHealth);
+        this.addCurrentMax(bodyParts.RightLeg.Health, addHealth);
+        this.addCurrentMax(bodyParts.LeftLeg.Health, addHealth);
     }
 
     private findSkill(skills: any, name: string): IBaseSkill {
@@ -108,5 +103,36 @@ export class BaseCharacterHandler {
 
     private floorValue(value: number): number {
         return Math.floor(value);
+    }
+
+    protected toString(bot: IBotBase, display: boolean = false): void {
+        if (display == false)
+           return;
+  
+        const newLine: string = "\n| ";
+        let message: string = newLine + "Bot(" + bot.Info.Nickname + ")[" + bot.Info.Side + "]";
+        message += newLine + "Level: " + bot.Info.Level;
+        const healthAmount: number = this.getHealthAmount(bot.Health.BodyParts);
+        message += newLine + "Health: " + healthAmount;
+  
+        const vSkill: IBaseSkill = this.findSkill(bot.Skills.Common, ConstSkillName.VITALITY);
+        const vLevel: number = (vSkill === undefined) ? 0 : this.getSkillLevel(vSkill.Progress);
+  
+        const hSkill: IBaseSkill = this.findSkill(bot.Skills.Common, ConstSkillName.HEALTH);
+        const hLevel: number = (hSkill === undefined) ? 0 : this.getSkillLevel(hSkill.Progress);
+  
+        message += newLine + "Skills: Health("+hLevel+"), Vitality("+vLevel+")";
+  
+        this.logger.logWithColor("|=> " + message, LogTextColor.MAGENTA);
+    }
+
+    private getHealthAmount(bodyParts: BodyPartsHealth): number {
+        return bodyParts.Head.Health.Maximum + 
+           bodyParts.Chest.Health.Maximum + 
+           bodyParts.Stomach.Health.Maximum + 
+           bodyParts.RightArm.Health.Maximum + 
+           bodyParts.LeftArm.Health.Maximum + 
+           bodyParts.RightLeg.Health.Maximum + 
+           bodyParts.LeftLeg.Health.Maximum;
     }
 }
