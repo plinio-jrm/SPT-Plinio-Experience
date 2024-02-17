@@ -1,0 +1,21 @@
+{
+   "Difficulty": 2,
+   "Bot": {
+      "StatPerLevel": 5,
+      "StatPerSkill": {
+         "Metabolism": 2,
+         "Health": 2.5,
+         "Vitality": 1.25
+      },
+      "DisplayBotNewHealthOnServer": false
+   },
+   "Player": {
+      "StatPerLevel": 5,
+      "StatPerSkill": {
+         "Metabolism": 2,
+         "Health": 2.5,
+         "Vitality": 1.25
+      }
+   },
+   "Debug": false
+}
