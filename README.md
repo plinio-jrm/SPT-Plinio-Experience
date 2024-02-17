@@ -1,3 +1,9 @@
+# PlinioJRM Experience server mod
+
+This is a mod that reflects what i enjoy in singleplayer Tarkov. The changes are configurable and the project is set closest to SOLID pattern.
+
+### More information about how to compile can be found below!
+
 # Welcome to the SPT-AKI Modding Project
 
 This project is designed to streamline the initial setup process for building and creating mods in the SPT-AKI environment. Follow this guide to set up your environment efficiently.
