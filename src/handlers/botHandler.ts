@@ -2,13 +2,14 @@
 /* eslint-disable @typescript-eslint/brace-style */
 /* eslint-disable @typescript-eslint/indent */
 import { inject, injectable } from "tsyringe";
-import { ILogger } from "@spt-aki/models/spt/utils/ILogger";
 
 import { IGetBodyResponseData } from "@spt-aki/models/eft/httpResponse/IGetBodyResponseData";
 import { IBotBase } from "@spt-aki/models/eft/common/tables/IBotBase";
 
 import { IBotConfig } from "../common/IConfig";
+import { ConstInjectionName } from "../common/constants";
 import { ModCore } from "../core/modCore";
+import { LogSystem } from "../core/logSystem";
 import { BaseCharacterHandler } from "./baseCharacterHandler";
 
 @injectable()
@@ -17,10 +18,10 @@ export class BotHandler extends BaseCharacterHandler{
    private config: IBotConfig;
 
    constructor(
-      @inject("WinstonLogger") protected logger: ILogger,
-      @inject("PlinioCore") protected core: ModCore
+      @inject(ConstInjectionName.LOG_SYSTEM) protected logSystem: LogSystem,
+      @inject(ConstInjectionName.MOD_CORE) protected core: ModCore
    ) { 
-      super(logger, core, false);
+      super(logSystem, core, false);
       this.config = core.getBotConfig();
    }
 
@@ -36,7 +37,7 @@ export class BotHandler extends BaseCharacterHandler{
          return;
       
       if (this.responseData.data === null) {
-         this.logger.info("No bot generated! ignoring PlinioJRM-Experience bot's settings");
+         this.logSystem.info("No bot generated! ignoring PlinioJRM-Experience bot's settings");
          return;
       }
       if (this.responseData.data.length == 0)
@@ -53,6 +54,6 @@ export class BotHandler extends BaseCharacterHandler{
       this.applyMetabolism(bot, this.config);
       this.applyVitalityHealth(bot, this.config);
 
-      this.toString(bot, this.config.DisplayBotNewHealthOnServer);
+      this.toString(bot);
    }
 }

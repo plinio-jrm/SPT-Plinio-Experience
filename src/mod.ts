@@ -4,10 +4,11 @@ import { DependencyContainer, registry } from "tsyringe";
 
 import { BotHandler } from "./handlers/botHandler";
 import { ModCore } from "./core/modCore";
+import { LogSystem } from "./core/logSystem";
 import { InRaidNewHelper } from "./helpers/inRaidNewHelper";
+import { ConstMod, ConstInjectionName } from "./common/constants";
 
 import type { IPreAkiLoadMod } from "@spt-aki/models/external/IPreAkiLoadMod";
-import type { ILogger } from "@spt-aki/models/spt/utils/ILogger";
 import type { DynamicRouterModService } from "@spt-aki/services/mod/dynamicRouter/DynamicRouterModService";
 import type { StaticRouterModService } from "@spt-aki/services/mod/staticRouter/StaticRouterModService";
 import { InRaidHelper } from "@spt-aki/helpers/InRaidHelper";
@@ -19,14 +20,16 @@ class Mod implements IPreAkiLoadMod
 {
     public preAkiLoad(container: DependencyContainer): void 
     {
-        container.register<ModCore>("PlinioCore", ModCore);
-        container.register<BotHandler>("PlinioBotHandler", BotHandler);
-        container.register<InRaidNewHelper>("PlinioInRaidNewHelper", InRaidNewHelper);
+        container.register<ModCore>(ConstInjectionName.MOD_CORE, ModCore);
+        container.register<BotHandler>(ConstInjectionName.BOT_HANDLE, BotHandler);
+        container.register<InRaidNewHelper>(ConstInjectionName.INRAID_NEW_HELPER, InRaidNewHelper);
+        container.register<LogSystem>(ConstInjectionName.LOG_SYSTEM, LogSystem);
         
-        const logger = container.resolve<ILogger>("WinstonLogger");
-        const botHandler: BotHandler = container.resolve<BotHandler>("PlinioBotHandler");
-        const core: ModCore = container.resolve<ModCore>("PlinioCore");
-        logger.logWithColor("PlinioJRM Experience - Difficulty: "+core.difficultyName(), LogTextColor.GREEN);
+        const logSystem = container.resolve<LogSystem>(ConstInjectionName.LOG_SYSTEM);
+        const botHandler: BotHandler = container.resolve<BotHandler>(ConstInjectionName.BOT_HANDLE);
+        const core: ModCore = container.resolve<ModCore>(ConstInjectionName.MOD_CORE);
+
+        logSystem.log(ConstMod.MOD_LOADED + core.difficultyName(), LogTextColor.GREEN);
 
         const dynamicRouterModService = container.resolve<DynamicRouterModService>("DynamicRouterModService");
         const staticRouterModService = container.resolve<StaticRouterModService>("StaticRouterModService");
@@ -70,7 +73,7 @@ class Mod implements IPreAkiLoadMod
             //"aki"
         );
 
-        const inRaidNewHelper: InRaidNewHelper = container.resolve<InRaidNewHelper>("PlinioInRaidNewHelper");
+        const inRaidNewHelper: InRaidNewHelper = container.resolve<InRaidNewHelper>(ConstInjectionName.INRAID_NEW_HELPER);
         container.afterResolution("InRaidHelper", (_t, result: InRaidHelper) => {
             result.updateProfileBaseStats = (
                 profileData: IPmcData,

@@ -2,19 +2,20 @@
 /* eslint-disable @typescript-eslint/brace-style */
 /* eslint-disable @typescript-eslint/indent */
 import { inject, injectable } from "tsyringe";
-import { ILogger } from "@spt-aki/models/spt/utils/ILogger";
-import { IBotBase, Health, CurrentMax, IBaseSkill, BodyPartsHealth } from "@spt-aki/models/eft/common/tables/IBotBase";
+
+import { IBotBase, CurrentMax, IBaseSkill, BodyPartsHealth } from "@spt-aki/models/eft/common/tables/IBotBase";
 import { LogTextColor } from "@spt-aki/models/spt/logging/LogTextColor";
 
 import { IBaseCharacterConfig } from "../common/IConfig";
 import { ModCore } from "../core/modCore";
-import { ConstHealth, ConstSkillName } from "../common/constants";
+import { LogSystem } from "../core/logSystem";
+import { ConstHealth, ConstSkillName, ConstInjectionName } from "../common/constants";
 
 @injectable()
 export class BaseCharacterHandler {
     constructor (
-        @inject("WinstonLogger") protected logger: ILogger,
-        @inject("PlinioCore") protected core: ModCore,
+        @inject(ConstInjectionName.LOG_SYSTEM) protected logSystem: LogSystem,
+        @inject(ConstInjectionName.MOD_CORE) protected core: ModCore,
         protected hasError: boolean
     ) { 
         hasError = false;
@@ -105,25 +106,23 @@ export class BaseCharacterHandler {
         return Math.floor(value);
     }
 
-    protected toString(bot: IBotBase, display: boolean = false): void {
-        if (display == false)
-           return;
-  
-        const newLine: string = "\n| ";
-        let message: string = newLine + "Bot(" + bot.Info.Nickname + ")[" + bot.Info.Side + "]";
-        message += newLine + "Level: " + bot.Info.Level;
-        const healthAmount: number = this.getHealthAmount(bot.Health.BodyParts);
-        message += newLine + "Health: " + healthAmount;
-  
-        const vSkill: IBaseSkill = this.findSkill(bot.Skills.Common, ConstSkillName.VITALITY);
-        const vLevel: number = (vSkill === undefined) ? 0 : this.getSkillLevel(vSkill.Progress);
-  
-        const hSkill: IBaseSkill = this.findSkill(bot.Skills.Common, ConstSkillName.HEALTH);
-        const hLevel: number = (hSkill === undefined) ? 0 : this.getSkillLevel(hSkill.Progress);
-  
-        message += newLine + "Skills: Health("+hLevel+"), Vitality("+vLevel+")";
-  
-        this.logger.logWithColor("|=> " + message, LogTextColor.MAGENTA);
+    protected toString(bot: IBotBase): void {
+        this.logSystem.logFn(() => {
+            const newLine: string = "\n| ";
+            let message: string = newLine + "Bot(" + bot.Info.Nickname + ")[" + bot.Info.Side + "]";
+            message += newLine + "Level: " + bot.Info.Level;
+            const healthAmount: number = this.getHealthAmount(bot.Health.BodyParts);
+            message += newLine + "Health: " + healthAmount;
+      
+            const vSkill: IBaseSkill = this.findSkill(bot.Skills.Common, ConstSkillName.VITALITY);
+            const vLevel: number = (vSkill === undefined) ? 0 : this.getSkillLevel(vSkill.Progress);
+      
+            const hSkill: IBaseSkill = this.findSkill(bot.Skills.Common, ConstSkillName.HEALTH);
+            const hLevel: number = (hSkill === undefined) ? 0 : this.getSkillLevel(hSkill.Progress);
+      
+            message += newLine + "Skills: Health("+hLevel+"), Vitality("+vLevel+")";
+            return "|=> " + message;
+        }, LogTextColor.MAGENTA);
     }
 
     private getHealthAmount(bodyParts: BodyPartsHealth): number {

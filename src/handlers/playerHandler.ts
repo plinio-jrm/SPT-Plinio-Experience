@@ -1,10 +1,11 @@
 /* eslint-disable @typescript-eslint/brace-style */
 import { inject, injectable } from "tsyringe";
-import { ILogger } from "@spt-aki/models/spt/utils/ILogger";
 import { IBotBase } from "@spt-aki/models/eft/common/tables/IBotBase";
 
 import { IPlayerConfig } from "../common/IConfig";
+import { ConstInjectionName, ConstMod } from "../common/constants";
 import { ModCore } from "../core/modCore";
+import { LogSystem } from "../core/logSystem";
 import { BaseCharacterHandler } from "./baseCharacterHandler";
 
 @injectable()
@@ -13,10 +14,10 @@ export class PlayerHandler extends BaseCharacterHandler {
     private config: IPlayerConfig;
     
     constructor (
-        @inject("WinstonLogger") protected logger: ILogger,
-        @inject("PlinioCore") protected core: ModCore
+        @inject(ConstInjectionName.LOG_SYSTEM) protected logSystem: LogSystem,
+        @inject(ConstInjectionName.MOD_CORE) protected core: ModCore
     ) { 
-        super(logger, core, false);
+        super(logSystem, core, false);
         this.config = core.getPlayerConfig();
     }
 
@@ -31,7 +32,7 @@ export class PlayerHandler extends BaseCharacterHandler {
         if (this.hasError)
             return;
         if (this.data === null || this.data === undefined) {
-            this.logger.info("No player data! ignoring PlinioJRM-Experience player's settings");
+            this.logSystem.log(ConstMod.NO_PLAYER_DATA);
             return;
         }
 

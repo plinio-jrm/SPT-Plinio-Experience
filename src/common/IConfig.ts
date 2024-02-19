@@ -1,10 +1,14 @@
 /* eslint-disable @typescript-eslint/indent */
 /* eslint-disable @typescript-eslint/brace-style */
-export interface IConfig {
+export interface IConfig extends ISystem{
     Difficulty: Difficulty;
     Bot: IBotConfig;
     Player: IPlayerConfig;
+}
+
+export interface ISystem {
     Debug: boolean;
+    CreateLogFile: boolean;
 }
 
 export const enum Difficulty {

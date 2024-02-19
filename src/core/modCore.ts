@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/brace-style */
 import { injectable, inject } from "tsyringe";
 import { ILogger } from "@spt-aki/models/spt/utils/ILogger";
-import { IConfig, Difficulty, IBotConfig, IPlayerConfig } from "../common/IConfig";
+import { IConfig, Difficulty, IBotConfig, IPlayerConfig, ISystem } from "../common/IConfig";
 import { LogTextColor } from "@spt-aki/models/spt/logging/LogTextColor";
 
 @injectable()
@@ -18,6 +18,10 @@ export class ModCore {
 
     public getPlayerConfig(): IPlayerConfig {
         return this.config.Player;
+    }
+
+    public getSystemConfig(): ISystem {
+        return this.config;
     }
 
     public difficulty(): number {
