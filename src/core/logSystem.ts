@@ -14,6 +14,7 @@ import { ISystem } from "../common/IConfig";
 @injectable()
 export class LogSystem {
     private filename: string;
+    private isFileEnable: boolean;
 
     constructor (
         @inject("WinstonLogger") protected logger: ILogger,
@@ -21,7 +22,8 @@ export class LogSystem {
         private config: ISystem
     ) {
         config = core.getSystemConfig();
-        if (!config.CreateLogFile)
+        this.isFileEnable = config.CreateLogFile
+        if (this.isFileEnable == false)
             return;
         
         this.log("");
@@ -48,6 +50,8 @@ export class LogSystem {
     }
 
     private fileLog(data: string): void {
+        if (this.isFileEnable == false)
+            return;
         if (this.filename === "")
             this.filename = ConstLogSystem.FILENAME + this.getDate() + ConstLogSystem.EXTENSION;
 
