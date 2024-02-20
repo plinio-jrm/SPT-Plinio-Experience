@@ -1,7 +1,8 @@
+/* eslint-disable prefer-const */
 /* eslint-disable @typescript-eslint/naming-convention */
 /* eslint-disable @typescript-eslint/brace-style */
 import { inject, injectable } from "tsyringe";
-import { writeFileSync } from "fs";
+import { writeFileSync, readFileSync } from "fs";
 import { join } from "path";
 
 import { ILogger } from "@spt-aki/models/spt/utils/ILogger";
@@ -13,20 +14,22 @@ import { ISystem } from "../common/IConfig";
 
 @injectable()
 export class LogSystem {
-    private filename: string;
+    private config: ISystem;
+    private filename: string = "";
+    private filepath: string = "";
     private isFileEnable: boolean;
+    private isFileEmpty: boolean;
 
     constructor (
         @inject("WinstonLogger") protected logger: ILogger,
-        @inject(ConstInjectionName.MOD_CORE) protected core: ModCore,
-        private config: ISystem
+        @inject(ConstInjectionName.MOD_CORE) protected core: ModCore
     ) {
-        config = core.getSystemConfig();
-        this.isFileEnable = config.CreateLogFile
+        this.config = core.getSystemConfig();
+        this.isFileEnable = this.config.CreateLogFile
         if (this.isFileEnable == false)
             return;
-        
-        this.log("");
+
+        this.checkFileIsEmpty();
         logger.logWithColor(ConstMod.LOG_FILE_CREATED + this.filename, LogTextColor.GREEN);
     }
 
@@ -52,13 +55,16 @@ export class LogSystem {
     private fileLog(data: string): void {
         if (this.isFileEnable == false)
             return;
-        if (this.filename === "")
-            this.filename = ConstLogSystem.FILENAME + this.getDate() + ConstLogSystem.EXTENSION;
 
-        const path: string = join(__dirname, ConstLogSystem.DIR_PATH + this.filename);
-        const prefix: string = "["+this.getHour()+"]:";
+        let prefix: string = "["+this.getDateTime()+"]: ";
+        if (this.isFileEmpty == false)
+            prefix = ConstLogSystem.NEWLINE + prefix;
 
-        writeFileSync(path, prefix + data, { flag: "a+" });
+        writeFileSync(this.filepath, prefix + data, { encoding: "utf-8", flag: "a+" });
+    }
+
+    private getDateTime(): string {
+        return `${this.getDate}-${this.getHour()}`;
     }
 
     private getDate(): string {
@@ -74,6 +80,16 @@ export class LogSystem {
         const hour: string = today.getHours().toString().padStart(2, "0");
         const minutes: string = today.getMinutes().toString().padStart(2, "0");
         const seconds: string = today.getSeconds().toString().padStart(2, "0");
-        return `${hour}:${minutes}:${seconds}`;
+        return `${hour}-${minutes}-${seconds}`;
+    }
+
+    private checkFileIsEmpty(): void {
+        if (this.filename == "")
+            this.filename = ConstLogSystem.FILENAME + this.getDate() + ConstLogSystem.EXTENSION;
+        
+        this.filepath = join(__dirname, ConstLogSystem.DIR_PATH + this.filename);
+        const buffer = readFileSync(this.filepath, { encoding: "utf-8", flag: "a+" });
+        this.logger.logWithColor("buffer: "+buffer, LogTextColor.MAGENTA);
+        this.isFileEmpty = buffer === "";
     }
 }

@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/brace-style */
-import { DependencyContainer, registry } from "tsyringe";
+import { DependencyContainer, Lifecycle, registry } from "tsyringe";
 
 import { BotHandler } from "./handlers/botHandler";
 import { ModCore } from "./core/modCore";
@@ -23,7 +23,7 @@ class Mod implements IPreAkiLoadMod
         container.register<ModCore>(ConstInjectionName.MOD_CORE, ModCore);
         container.register<BotHandler>(ConstInjectionName.BOT_HANDLE, BotHandler);
         container.register<InRaidNewHelper>(ConstInjectionName.INRAID_NEW_HELPER, InRaidNewHelper);
-        container.register<LogSystem>(ConstInjectionName.LOG_SYSTEM, LogSystem);
+        container.register<LogSystem>(ConstInjectionName.LOG_SYSTEM, LogSystem, { lifecycle: Lifecycle.Singleton });
         
         const logSystem = container.resolve<LogSystem>(ConstInjectionName.LOG_SYSTEM);
         const botHandler: BotHandler = container.resolve<BotHandler>(ConstInjectionName.BOT_HANDLE);
@@ -83,6 +83,7 @@ class Mod implements IPreAkiLoadMod
                 inRaidNewHelper.updateProfileBaseStats(profileData, saveProgressRequest, sessionID);
             }
         }, {frequency: "Always"});
+        
     }
 }
 

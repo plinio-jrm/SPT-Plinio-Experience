@@ -17,6 +17,6 @@
          "Vitality": 1.25
       }
    },
-   "Debug": false,
+   "Debug": true,
    "CreateLogFile": true
 }
