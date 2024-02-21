@@ -3,8 +3,10 @@
 import { DependencyContainer, Lifecycle, registry } from "tsyringe";
 
 import { BotHandler } from "./handlers/botHandler";
+import { PlayerHandler } from "./handlers/playerHandler";
 import { ModCore } from "./core/modCore";
 import { LogSystem } from "./core/logSystem";
+import { HealthRuleSystem } from "./core/healthRuleSystem";
 import { InRaidNewHelper } from "./helpers/inRaidNewHelper";
 import { ConstMod, ConstInjectionName } from "./common/constants";
 
@@ -18,21 +20,41 @@ import { LogTextColor } from "@spt-aki/models/spt/logging/LogTextColor";
 
 class Mod implements IPreAkiLoadMod 
 {
+    private logSystem: LogSystem;
+
     public preAkiLoad(container: DependencyContainer): void 
     {
+        this.registerModules(container);
+        this.init(container);
+
+        this.setupRoutes(container);
+        this.setupHelpers(container);
+    }
+
+    public postDBLoad(container: DependencyContainer): void {
+        this.test(container);
+    }
+
+    private registerModules(container: DependencyContainer): void {
         container.register<ModCore>(ConstInjectionName.MOD_CORE, ModCore);
-        container.register<BotHandler>(ConstInjectionName.BOT_HANDLE, BotHandler);
-        container.register<InRaidNewHelper>(ConstInjectionName.INRAID_NEW_HELPER, InRaidNewHelper);
         container.register<LogSystem>(ConstInjectionName.LOG_SYSTEM, LogSystem, { lifecycle: Lifecycle.Singleton });
-        
-        const logSystem = container.resolve<LogSystem>(ConstInjectionName.LOG_SYSTEM);
-        const botHandler: BotHandler = container.resolve<BotHandler>(ConstInjectionName.BOT_HANDLE);
+        container.register<BotHandler>(ConstInjectionName.BOT_HANDLE, BotHandler);
+        container.register<PlayerHandler>(ConstInjectionName.PLAYER_HANDLE, PlayerHandler);
+        container.register<InRaidNewHelper>(ConstInjectionName.INRAID_NEW_HELPER, InRaidNewHelper);
+        container.register<HealthRuleSystem>(ConstInjectionName.HEALTH_RULE_SYSTEM, HealthRuleSystem);
+    }
+
+    private init(container: DependencyContainer): void {
         const core: ModCore = container.resolve<ModCore>(ConstInjectionName.MOD_CORE);
+        this.logSystem = container.resolve<LogSystem>(ConstInjectionName.LOG_SYSTEM);
+        this.logSystem.log(ConstMod.MOD_LOADED + core.difficultyName(), LogTextColor.GREEN);
+    }
 
-        logSystem.log(ConstMod.MOD_LOADED + core.difficultyName(), LogTextColor.GREEN);
-
+    private setupRoutes(container: DependencyContainer): void {
         const dynamicRouterModService = container.resolve<DynamicRouterModService>("DynamicRouterModService");
         const staticRouterModService = container.resolve<StaticRouterModService>("StaticRouterModService");
+
+        const botHandler: BotHandler = container.resolve<BotHandler>(ConstInjectionName.BOT_HANDLE);
 
         // dynamic route
         /*dynamicRouterModService.registerDynamicRouter(
@@ -60,19 +82,14 @@ class Mod implements IPreAkiLoadMod
                     action: (url, info, sessionId, output) => {
                         return botHandler.handle(output);
                     }
-                },
-                {
-                    url: "/raid/profile/save",
-                    action: (url, info, sessionId, output) => {
-                        //logger.info("data: " + JSON.stringify(profile));
-                        return output;
-                    }
                 }
             ],
             "PlinioJRM"
             //"aki"
         );
+    }
 
+    private setupHelpers(container: DependencyContainer): void {
         const inRaidNewHelper: InRaidNewHelper = container.resolve<InRaidNewHelper>(ConstInjectionName.INRAID_NEW_HELPER);
         container.afterResolution("InRaidHelper", (_t, result: InRaidHelper) => {
             result.updateProfileBaseStats = (
@@ -83,7 +100,10 @@ class Mod implements IPreAkiLoadMod
                 inRaidNewHelper.updateProfileBaseStats(profileData, saveProgressRequest, sessionID);
             }
         }, {frequency: "Always"});
-        
+    }
+
+    private test(container: DependencyContainer): void {
+        const hSystem: HealthRuleSystem = container.resolve<HealthRuleSystem>(ConstInjectionName.HEALTH_RULE_SYSTEM);
     }
 }
 

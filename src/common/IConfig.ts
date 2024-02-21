@@ -13,10 +13,11 @@ export interface ISystem {
 
 export const enum Difficulty {
     NONE = 0,
-    EASY = 1,
-    NORMAL = 2,
-    HARD = 3,
-    IMPOSSIBLE = 4
+    CAKE = 1,
+    EASY = 2,
+    NORMAL = 3,
+    HARD = 4,
+    IMPOSSIBLE = 5
 }
 
 export interface IBotConfig extends IBaseCharacterConfig {

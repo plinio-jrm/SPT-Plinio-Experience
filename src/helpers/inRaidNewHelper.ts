@@ -1,16 +1,22 @@
 /* eslint-disable @typescript-eslint/brace-style */
 import { inject, injectable } from "tsyringe";
-import { ILogger } from "@spt-aki/models/spt/utils/ILogger";
+
+import { LogSystem } from "../core/logSystem";
+import { PlayerHandler } from "../handlers/playerHandler";
+import { ConstInjectionName } from "../common/constants";
+
 import { IPmcData } from "@spt-aki/models/eft/common/IPmcData";
+import { IPostRaidPmcData } from "@spt-aki/models/eft/common/IPmcData";
+import { IBotBase, IEftStats } from "@spt-aki/models/eft/common/tables/IBotBase";
 import { SaveServer } from "@spt-aki/servers/SaveServer";
 import { ISaveProgressRequestData } from "@spt-aki/models/eft/inRaid/ISaveProgressRequestData";
-import { LogTextColor } from "@spt-aki/models/spt/logging/LogTextColor";
 
 @injectable()
 export class InRaidNewHelper {
     constructor(
-        @inject("WinstonLogger") private logger: ILogger,
-        @inject("SaveServer") protected saveServer: SaveServer
+        @inject("SaveServer") protected saveServer: SaveServer,
+        @inject(ConstInjectionName.LOG_SYSTEM) protected logSystem: LogSystem,
+        @inject(ConstInjectionName.PLAYER_HANDLE) private playerHandle: PlayerHandler
     ) {}
 
     public updateProfileBaseStats(
@@ -18,10 +24,13 @@ export class InRaidNewHelper {
         saveProgressRequest: ISaveProgressRequestData,
         sessionID: string
     ): void {
-        this.logger.logWithColor("> executing my personal replacement [InRaidHelper]", LogTextColor.MAGENTA);
         this.resetSkillPointsEarnedDuringRaid(saveProgressRequest.profile);
 
+        const eftStats: IEftStats = saveProgressRequest.profile.EftStats;
+        saveProgressRequest.profile = this.playerHandle.handle(saveProgressRequest.profile as IBotBase) as IPostRaidPmcData;
+        saveProgressRequest.profile.EftStats = eftStats;
         // Set profile data
+        profileData.Health = saveProgressRequest.profile.Health;
         profileData.Info.Level = saveProgressRequest.profile.Info.Level;
         profileData.Skills = saveProgressRequest.profile.Skills;
         profileData.Stats.Eft = saveProgressRequest.profile.Stats.Eft;
@@ -56,12 +65,12 @@ export class InRaidNewHelper {
 
             const matchingPreRaidCounter = profileData.BackendCounters[backendCounterKey];
             if (!matchingPreRaidCounter) {
-                this.logger.error(`Backendcounter: ${backendCounterKey} cannot be found in pre-raid data`);
+                this.logSystem.error(`Backendcounter: ${backendCounterKey} cannot be found in pre-raid data`);
                 continue;
             }
 
             if (matchingPreRaidCounter.value !== postRaidValue)
-                this.logger.error(
+                this.logSystem.error(
                     `Backendcounter: ${backendCounterKey} value is different post raid, old: ${matchingPreRaidCounter.value} new: ${postRaidValue}`
                 );
         }

@@ -23,7 +23,9 @@ export class PlayerHandler extends BaseCharacterHandler {
 
     public handle(player: IBotBase): IBotBase {
         this.data = player;
+        this.logSystem.log("1. Data = " + this.data);
         this.process();
+        this.logSystem.log("2. Data = " + this.data);
         return this.data;
     }
 
@@ -43,5 +45,7 @@ export class PlayerHandler extends BaseCharacterHandler {
         this.changeHealth(this.data.Health.BodyParts, this.data.Info.Level, this.config);
         this.applyMetabolism(this.data, this.config);
         this.applyVitalityHealth(this.data, this.config);
+
+        this.toString(this.data);
     }
 }

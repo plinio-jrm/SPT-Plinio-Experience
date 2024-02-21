@@ -15,8 +15,9 @@ import { ISystem } from "../common/IConfig";
 @injectable()
 export class LogSystem {
     private config: ISystem;
-    private filename: string = "";
-    private filepath: string = "";
+    private fileName: string = "";
+    private fileErrName: string = "";
+    private filePath: string = "";
     private isFileEnable: boolean;
     private isFileEmpty: boolean;
 
@@ -30,16 +31,24 @@ export class LogSystem {
             return;
 
         this.checkFileIsEmpty();
-        logger.logWithColor(ConstMod.LOG_FILE_CREATED + this.filename, LogTextColor.GREEN);
+        logger.logWithColor(ConstMod.LOG_FILE_CREATED + this.fileName, LogTextColor.GREEN);
     }
 
     public logFn(data: () => string, color: LogTextColor | undefined = undefined): void {
         this.log(data(), color);
     }
 
-    public log(data: string, color: LogTextColor | undefined = undefined): void {
-        this.serverLog(data, color);
+    public log(data: string, color: LogTextColor | undefined = undefined, isError: boolean = false): void {
+        this.serverLog((isError) ? ConstMod.MOD_MSG + data : data, color);
         this.fileLog(data);
+    }
+
+    public error(message: string): void {
+        this.log(message, LogTextColor.RED);
+    }
+
+    public debug(message: string): void {
+        this.serverLog(message, LogTextColor.YELLOW);
     }
 
     private serverLog(message: string, color: LogTextColor | undefined = undefined): void {
@@ -56,15 +65,30 @@ export class LogSystem {
         if (this.isFileEnable == false)
             return;
 
+        this.writeLine(this.filePath, data);
+    }
+
+    private fileErrorLog(data: string): void {
+        if (this.isFileEnable == false)
+            return;
+        if (this.fileErrName == "")
+            this.fileErrName = ConstLogSystem.FILENAME_ERR + this.getDate() + ConstLogSystem.EXTENSION;
+
+        const path: string = this.getFilePath(this.fileErrName);
+        this.writeLine(path, data);
+    }
+
+    private writeLine(path: string, data: string): void{
         let prefix: string = "["+this.getDateTime()+"]: ";
         if (this.isFileEmpty == false)
             prefix = ConstLogSystem.NEWLINE + prefix;
 
-        writeFileSync(this.filepath, prefix + data, { encoding: "utf-8", flag: "a+" });
+        writeFileSync(path, prefix + data, { encoding: "utf-8", flag: "a+" });
+        this.isFileEmpty = false;
     }
 
     private getDateTime(): string {
-        return `${this.getDate}-${this.getHour()}`;
+        return `${this.getDate()}-${this.getHour()}`;
     }
 
     private getDate(): string {
@@ -84,12 +108,16 @@ export class LogSystem {
     }
 
     private checkFileIsEmpty(): void {
-        if (this.filename == "")
-            this.filename = ConstLogSystem.FILENAME + this.getDate() + ConstLogSystem.EXTENSION;
+        if (this.fileName == "")
+            this.fileName = ConstLogSystem.FILENAME + this.getDate() + ConstLogSystem.EXTENSION;
         
-        this.filepath = join(__dirname, ConstLogSystem.DIR_PATH + this.filename);
-        const buffer = readFileSync(this.filepath, { encoding: "utf-8", flag: "a+" });
-        this.logger.logWithColor("buffer: "+buffer, LogTextColor.MAGENTA);
+        this.filePath = this.getFilePath(this.fileName);
+        const buffer = readFileSync(this.filePath, { encoding: "utf-8", flag: "a+" });
+        //this.logger.logWithColor("buffer: "+buffer, LogTextColor.MAGENTA);
         this.isFileEmpty = buffer === "";
+    }
+
+    private getFilePath(filename: string): string {
+        return join(__dirname, ConstLogSystem.DIR_PATH + filename);
     }
 }

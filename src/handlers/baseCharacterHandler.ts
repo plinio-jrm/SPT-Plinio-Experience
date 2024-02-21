@@ -111,6 +111,7 @@ export class BaseCharacterHandler {
             const newLine: string = "\n| ";
             let message: string = newLine + "Bot(" + bot.Info.Nickname + ")[" + bot.Info.Side + "]";
             message += newLine + "Level: " + bot.Info.Level;
+            message += newLine + "Role: " + bot.Info.Settings.Role;
             const healthAmount: number = this.getHealthAmount(bot.Health.BodyParts);
             message += newLine + "Health: " + healthAmount;
       

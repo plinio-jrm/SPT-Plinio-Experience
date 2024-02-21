@@ -1,16 +1,14 @@
 /* eslint-disable @typescript-eslint/brace-style */
-import { injectable, inject } from "tsyringe";
-import { ILogger } from "@spt-aki/models/spt/utils/ILogger";
+import { injectable } from "tsyringe";
+
 import { IConfig, Difficulty, IBotConfig, IPlayerConfig, ISystem } from "../common/IConfig";
-import { LogTextColor } from "@spt-aki/models/spt/logging/LogTextColor";
+import { ConstDifficulty } from "../common/constants";
 
 @injectable()
 export class ModCore {
     private config: IConfig = require("../config/configuration.json");
 
-    constructor(
-        @inject("WinstonLogger") private logger: ILogger
-    ) {}
+    constructor( ) {}
 
     public getBotConfig(): IBotConfig {
         return this.config.Bot;
@@ -29,6 +27,9 @@ export class ModCore {
         switch (difficulty) {
             case Difficulty.NONE: {
                 return 0;
+            }
+            case Difficulty.CAKE: {
+                return 0.2;
             }
             case Difficulty.EASY: {
                 return 0.5;
@@ -49,19 +50,22 @@ export class ModCore {
         const difficulty: Difficulty = this.config.Difficulty;
         switch (difficulty) {
             case Difficulty.NONE: {
-                return "None (Not applied)";
+                return ConstDifficulty.NONE;
+            }
+            case Difficulty.CAKE: {
+                return ConstDifficulty.CAKE;
             }
             case Difficulty.EASY: {
-                return "Easy (Almost like default)";
+                return ConstDifficulty.EASY;
             }
             case Difficulty.NORMAL: {
-                return "Normal (Aim right to kill)";
+                return ConstDifficulty.NORMAL;
             }
             case Difficulty.HARD: {
-                return "Hard (You will struggle to kill)";
+                return ConstDifficulty.HARD;
             }
             case Difficulty.IMPOSSIBLE: {
-                return "Impossible (Don't blame me if you rage quit)";
+                return ConstDifficulty.IMPOSSIBLE;
             }
         }
     }
@@ -72,10 +76,5 @@ export class ModCore {
 
     public applyDifficulty(value: number): number {
         return value * this.difficulty();
-    }
-
-    public debug(message: string): void {
-        if (this.config.Debug)
-            this.logger.logWithColor("| " + message, LogTextColor.YELLOW);
     }
 }
