@@ -9,6 +9,11 @@ export class ConstMod {
     public static readonly LOG_FILENAME_IS: string = this.MOD_MSG + "File name is: ";
     public static readonly CONTACT_DEV: string = "\nPlease send this info to developer!";
     public static readonly DB_ASSAULT_BOTTYPE_NO_HEALTH: string = "Database > bot types > assault, doesn't have Health!" + this.CONTACT_DEV;
+    public static readonly RULE_CANT_ADD_RULE: string = this.MOD_MSG + "Cannot add rule!";
+}
+
+export class ConstCodes {
+    public static readonly RULE_SYSTEM_001: string = "[Code:RS001]";
 }
 
 export class ConstInjectionName {

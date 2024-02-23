@@ -38,10 +38,10 @@ class Mod implements IPreAkiLoadMod
     private registerModules(container: DependencyContainer): void {
         container.register<ModCore>(ConstInjectionName.MOD_CORE, ModCore);
         container.register<LogSystem>(ConstInjectionName.LOG_SYSTEM, LogSystem, { lifecycle: Lifecycle.Singleton });
+        container.register<HealthRuleSystem>(ConstInjectionName.HEALTH_RULE_SYSTEM, HealthRuleSystem);
         container.register<BotHandler>(ConstInjectionName.BOT_HANDLE, BotHandler);
         container.register<PlayerHandler>(ConstInjectionName.PLAYER_HANDLE, PlayerHandler);
         container.register<InRaidNewHelper>(ConstInjectionName.INRAID_NEW_HELPER, InRaidNewHelper);
-        container.register<HealthRuleSystem>(ConstInjectionName.HEALTH_RULE_SYSTEM, HealthRuleSystem);
     }
 
     private init(container: DependencyContainer): void {

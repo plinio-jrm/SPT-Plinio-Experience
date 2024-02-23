@@ -7,6 +7,7 @@ import { ConstInjectionName, ConstMod } from "../common/constants";
 import { ModCore } from "../core/modCore";
 import { LogSystem } from "../core/logSystem";
 import { BaseCharacterHandler } from "./baseCharacterHandler";
+import { HealthRuleSystem } from "../core/healthRuleSystem";
 
 @injectable()
 export class PlayerHandler extends BaseCharacterHandler {
@@ -15,9 +16,10 @@ export class PlayerHandler extends BaseCharacterHandler {
     
     constructor (
         @inject(ConstInjectionName.LOG_SYSTEM) protected logSystem: LogSystem,
-        @inject(ConstInjectionName.MOD_CORE) protected core: ModCore
+        @inject(ConstInjectionName.MOD_CORE) protected core: ModCore,
+        @inject(ConstInjectionName.HEALTH_RULE_SYSTEM) protected ruleSystem: HealthRuleSystem
     ) { 
-        super(logSystem, core, false);
+        super(logSystem, core, ruleSystem, false);
         this.config = core.getPlayerConfig();
     }
 
@@ -42,10 +44,11 @@ export class PlayerHandler extends BaseCharacterHandler {
     }
 
     private processPlayer(): void {
+        /*
         this.changeHealth(this.data.Health.BodyParts, this.data.Info.Level, this.config);
         this.applyMetabolism(this.data, this.config);
         this.applyVitalityHealth(this.data, this.config);
-
+        */
         this.toString(this.data);
     }
 }

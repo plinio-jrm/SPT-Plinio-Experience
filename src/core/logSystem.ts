@@ -43,6 +43,10 @@ export class LogSystem {
         this.fileLog(data);
     }
 
+    public logCode(code: string, data: string): void {
+        this.log(code + data, LogTextColor.MAGENTA);
+    }
+
     public error(message: string): void {
         this.log(message, LogTextColor.RED);
     }
